@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
 using TravelLogger;
 using AutoMapper;
+using TravelLogger.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

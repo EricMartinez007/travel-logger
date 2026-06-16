@@ -10,9 +10,14 @@ public class AutoMapperProfiles : Profile
     public AutoMapperProfiles()
     {
         CreateMap<User, UserDto>();
+        CreateMap<UserDto, User>();
         CreateMap<City, CityDto>();
+        CreateMap<CityDto, City>();
         CreateMap<Logs, LogDto>();
+        CreateMap<LogDto, Logs>();
         CreateMap<Recommendation, RecommendationDto>();
+        CreateMap<RecommendationDto, Recommendation>();
         CreateMap<Upvote, UpvoteDto>();
+        CreateMap<UpvoteDto, Upvote>();
     }
 }
