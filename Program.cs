@@ -5,7 +5,10 @@ using TravelLogger;
 using AutoMapper;
 using TravelLogger.Models;
 using TravelLogger.DTOs;
+<<<<<<< Updated upstream
 using AutoMapper.QueryableExtensions;
+=======
+>>>>>>> Stashed changes
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +43,65 @@ app.UseCors(options =>
 });
 
 // Add all endpoints here
+app.MapPost("/api/recommendations" , (TravelLoggerDbContext db, IMapper mapper, RecommendationDto newRecommendationDTO) =>
+{
+   var recommendation = mapper.Map<Recommendation>(newRecommendationDTO);
+   db.Recommendations.Add(recommendation);
+   db.SaveChanges();
+   return Results.Created($"api/recommendations/{recommendation.Id}", mapper.Map<RecommendationDto>(recommendation)); 
+});
+
+
+app.MapPut("/api/recommendations/{id}", (TravelLoggerDbContext db, IMapper mapper, int id, RecommendationDto recommendationDTO) =>
+{
+    Recommendation recommendationToUpdate = db.Recommendations.SingleOrDefault(r => r.Id == id );
+    if (recommendationToUpdate == null)
+    {
+        return Results.NotFound();
+    }
+    recommendationToUpdate.Description = recommendationDTO.Description;
+    db.SaveChanges();
+    return Results.NoContent();
+});
+
+
+
+app.MapDelete("/api/recommendations/{id}", (TravelLoggerDbContext db, IMapper mapper, int id) =>
+{
+    Recommendation recommendation = db.Recommendations.SingleOrDefault(p => p.Id == id);
+    if (recommendation == null)
+    {
+        return Results.NotFound();
+    }
+    db.Remove(recommendation);
+    db.SaveChanges();
+    return Results.NoContent();
+});
+
+
+app.MapGet("/api/cities/{cityId}/recommendations}", (TravelLoggerDbContext db, IMapper mapper, int cityId) =>
+{
+    var recommendations = db.Recommendations
+    .Where(r => r.CityId == cityId)
+    .ToList();
+
+    return Results.Ok(mapper.Map<List<RecommendationDto>>(recommendations));
+});
+
+
+app.MapGet("/api/recommendations/{id}", (TravelLoggerDbContext db , IMapper mapper, int id) =>
+{
+    var recommendation = db.Recommendations
+    .SingleOrDefault(r => r.Id == id);
+
+    if (recommendation == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(mapper.Map<RecommendationDto>(recommendation));
+});
+
+
 
 app.MapPost("/api/users", (TravelLoggerDbContext db, IMapper mapper, UserDto userDto) =>
 {
