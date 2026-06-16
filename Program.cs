@@ -236,4 +236,44 @@ app.MapGet("/api/cities/{cityId}/logs", (IMapper mapper, TravelLoggerDbContext d
     return Results.Ok(cityLogs);
 });
 
+app.MapGet("/api/cities", (IMapper mapper, TravelLoggerDbContext db) =>
+{
+    return db.Cities.ProjectTo<CityDto>(mapper.ConfigurationProvider).ToList();
+});
+
+app.MapGet("/api/cities/{id}", (IMapper mapper, TravelLoggerDbContext db, int id) =>
+{
+     CityDto? city = db.Cities
+        .ProjectTo<CityDto>(mapper.ConfigurationProvider)
+        .SingleOrDefault(c => c.Id == id);
+
+    return city != null ? Results.Ok(city) : Results.NotFound();
+});
+
+app.MapPost("/api/upvotes", (TravelLoggerDbContext db, IMapper mapper, Upvote newUpvote) =>
+{
+    Upvote upvote = mapper.Map<Upvote>(newUpvote);
+
+    db.Upvotes.Add(upvote);
+    db.SaveChanges();
+
+    UpvoteDto created = mapper.Map<UpvoteDto>(upvote);
+    return Results.Created($"/api/upvotes/{created.Id}", created);
+});
+
+app.MapDelete("/api/upvotes/{id}", (TravelLoggerDbContext db, int id) =>
+{
+    Upvote? upvoteToDelete = db.Upvotes.SingleOrDefault(u => u.Id == id);
+
+    if (upvoteToDelete == null)
+    {
+        return Results.NotFound();
+    }
+
+    db.Upvotes.Remove(upvoteToDelete);
+    db.SaveChanges();
+
+    return Results.NoContent();
+});
+
 app.Run();
