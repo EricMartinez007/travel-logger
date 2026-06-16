@@ -5,10 +5,7 @@ using TravelLogger;
 using AutoMapper;
 using TravelLogger.Models;
 using TravelLogger.DTOs;
-<<<<<<< Updated upstream
 using AutoMapper.QueryableExtensions;
-=======
->>>>>>> Stashed changes
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -162,6 +159,81 @@ app.MapGet("/api/cities/{cityId}/users", (TravelLoggerDbContext db, IMapper mapp
         .ToList();
 
     return Results.Ok(users);
+});
+
+app.MapPost("/api/logs", (TravelLoggerDbContext db, IMapper mapper, Logs newLog) =>
+{
+    db.Logs.Add(newLog);
+    db.SaveChanges();
+
+    LogDto createdLog = db.Logs
+        .ProjectTo<LogDto>(mapper.ConfigurationProvider)
+        .SingleOrDefault(log => log.Id == newLog.Id);
+
+    return Results.Created($"/api/logs/{newLog.Id}", createdLog);
+});
+
+app.MapPut("/api/logs/{id}", (TravelLoggerDbContext db, IMapper mapper, int id, Logs updatedLog) => 
+{
+    Logs existingLog = db.Logs
+        .SingleOrDefault(log => log.Id == id);
+
+    if(existingLog == null)
+    {
+        return Results.NotFound();
+    }
+    
+
+    existingLog.UserId = updatedLog.UserId;
+    existingLog.CityId = updatedLog.CityId;
+    existingLog.Comments = updatedLog.Comments;
+    existingLog.Date = updatedLog.Date;
+
+    db.SaveChanges();
+
+    LogDto updatedLogDto = db.Logs
+        .ProjectTo<LogDto>(mapper.ConfigurationProvider)
+        .SingleOrDefault(log => log.Id == id);
+
+    return Results.Ok(updatedLogDto);
+
+});
+
+
+app.MapDelete("/api/logs/{id}", (TravelLoggerDbContext db, int id) =>
+{
+    Logs logToDelete = db.Logs
+        .SingleOrDefault(log => log.Id == id);
+
+    if (logToDelete == null)
+    {
+        return Results.NotFound();
+    }
+
+    db.Logs.Remove(logToDelete);
+    db.SaveChanges();
+
+    return Results.NoContent();
+});
+
+app.MapGet("/api/users/{userId}/logs", (IMapper mapper, TravelLoggerDbContext db, int userId) =>
+{
+    List<LogDto> userLogs = db.Logs
+        .Where(log => log.UserId == userId)
+        .ProjectTo<LogDto>(mapper.ConfigurationProvider)
+        .ToList();
+
+    return Results.Ok(userLogs);
+});
+
+app.MapGet("/api/cities/{cityId}/logs", (IMapper mapper, TravelLoggerDbContext db, int cityId) =>
+{
+    List<LogDto> cityLogs = db.Logs
+        .Where(log => log.CityId == cityId)
+        .ProjectTo<LogDto>(mapper.ConfigurationProvider)
+        .ToList();
+
+    return Results.Ok(cityLogs);
 });
 
 app.Run();
